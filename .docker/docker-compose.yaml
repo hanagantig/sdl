@@ -1,0 +1,35 @@
+version: '3.9'
+
+services:
+  sdl-admin:
+    image: ghcr.io/hanagantig/sdl-admin:${CI_COMMIT_SHORT_SHA}
+    environment:
+      - DB_NAME=${DB_NAME}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    command: sh -c "python /usr/src/app/manage.py migrate && python3 /usr/src/app/manage.py runserver 0.0.0.0:8000"
+    networks:
+      - internal
+
+  sdl-nginx:
+    image: ghcr.io/hanagantig/sdl-nginx:${CI_COMMIT_SHORT_SHA}
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - internal
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.sdl-nginx.rule=Host(`smartdentlab.ru`) || Host(`admin.smartdentlab.ru`)"
+        - "traefik.http.routers.sdl-nginx.entrypoints=websecure"
+        - "traefik.http.routers.sdl-nginx.tls=true"
+        - "traefik.http.routers.sdl-nginx.tls.certresolver=letsEncryptProd"
+        - "traefik.http.services.sdl-nginx-svc.loadbalancer.server.port=80"
+    depends_on:
+      - sdl-admin
+
+networks:
+  internal:
+    external: true
