@@ -37,7 +37,7 @@ class InvoiceItem(models.Model):
 	invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="items", verbose_name="Счет")
 	service = models.ForeignKey(Service, on_delete=models.CASCADE, verbose_name="Услуга")
 	quantity = models.IntegerField(default=1, verbose_name="Количество")
-	price = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Цена")
+	price = models.DecimalField(max_digits=15, decimal_places=2, default=0, verbose_name="Цена")
 
 	def sum(self):
 		return Decimal(self.quantity) * Decimal(self.price)
